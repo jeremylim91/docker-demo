@@ -1,0 +1,43 @@
+# version: '1.0' # optional since v1.27.0
+services:
+  mongo:
+    container_name: docker_mongo
+    image: mongo
+    networks:
+      - gateway
+    ports:
+      # hostPort:containerPort
+      - '27017:27017'
+    hostname: mongo
+    # command: mongod --port 27017
+    volumes:
+      - ./data/db:/data/db
+
+  frontend:
+    build: ./docker-demo-bookstore-fe/
+    ports:
+      - '8080:8080'
+    # volumes:
+    #   - .:/code
+    #   - logvolume01:/var/log
+  backend:
+    image: bookstore-be-docker-img
+    build: ./docker-demo-bookstore-be/
+    container_name: docker_bookstore_be
+    networks:
+      - gateway
+    ports:
+      - '3004:3004'
+    hostname: spring
+    environment:
+      # Any environment variables here will AUTOMATICALLY replace the configs in the Spring project's application.configs file (assuming they have the same variable name)
+      - SPRING_DATA_MONGODB_HOST= mongo
+    depends_on:
+      - mongo
+
+# volumes:
+#   logvolume01: {}
+
+networks:
+  gateway:
+    driver: 'bridge'
